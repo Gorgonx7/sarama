@@ -1,0 +1,1 @@
+"Producer-NG" is the name of a total redesign and rewrite of sarama's producer logic, in [Pull Request #132](https://github.com/Shopify/sarama/pull/132) (not yet quite merged, though it will be soon). This page will serve to document its broader design.
