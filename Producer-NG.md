@@ -28,3 +28,11 @@ Maintaining the order of messages when a retry occurs is an additional challenge
 - the flusher sees the chaser message; it clears the flag it originally sent, and "retries" the chaser message
 - the leaderDispatcher sees the retried chaser message (indicating that it has seen the last retried message)
 - the leaderDispatcher flushes the backlog of "new" messages to the new broker and resumes normal processing
+
+### Shutdown
+
+Cleanly shutting down/closing a concurrent application is always an "interesting" problem. With pipelines in go the situation is relatively straightforward except when you have multiple writers on a single channel, in which case you must reference-count them to ensure all writers are closed before the channel is.
+
+In the producer, this pattern occurs in two places:
+- multiple partitions can be lead by the same broker; connections to `messageAggregators` are explicitly reference-counted in the `getBrokerWorker` and `unrefBrokerWorker` helper functions
+- all `flushers` can write to the `retryHandler`; this is reference-counted by sending ref/unref messages to it from *all* other goroutines, as we must be sure that there are no messages anywhere in the pipeline before it closes
