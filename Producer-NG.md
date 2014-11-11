@@ -15,3 +15,16 @@ The producer is effectively based on the [pipeline concurrency pattern](http://b
 When the flusher cannot deliver a message due to a cluster leadership change, that message is automatically retried at most once. A flag is set on each message indicating that it is being retried, and the messages are then flushed to the `retryHandler` (an additional singleton goroutine) which puts them back into the normal input channel.
 
 As this introduces a loop in our pipeline, we must be careful to avoid the obvious deadlock case. To this end, the `retryHandler` goroutine is *always* available to read messages.
+
+##### Maintaining Order
+
+Maintaining the order of messages when a retry occurs is an additional challenge. When a `flusher` triggers a retry, the following events occur:
+- the messages to retry are sent to the retryHandler
+- the flusher sets a flag for the given topic/partition; while this flag is set any further messages for that partition (which may have already been in the pipeline) will be immediately retried
+- eventually the first retried message reaches its `leaderDispatcher`
+- the leaderDispatcher sends off a special "chaser" message and releases its reference to the old broker
+- the leaderDispatcher updates its metadata, opens a connection to the new broker, and sends the retried broker down the new path
+- the leaderDispatcher continues handling incoming messages - retried messages get sent to the new broker, while new messages are held in a queue to preserver ordering
+- the flusher sees the chaser message; it clears the flag it originally sent, and "retries" the chaser message
+- the leaderDispatcher sees the retried chaser message (indicating that it has seen the last retried message)
+- the leaderDispatcher flushes the backlog of "new" messages to the new broker and resumes normal processing
