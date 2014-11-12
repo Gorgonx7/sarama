@@ -20,7 +20,7 @@ As this introduces a loop in our pipeline, we must be careful to avoid the obvio
 
 Maintaining the order of messages when a retry occurs is an additional challenge. When a `flusher` triggers a retry, the following events occur, strictly in this order:
 - the messages to retry are sent to the `retryHandler`
-- the `flusher` sets a flag for the given topic/partition; while this flag is set any further such messages (which may have already been in the pipeline) will be immediately retried
+- the `flusher` sets a flag for the given topic/partition; while this flag is set any further such messages (which may have already been in the pipeline) will be immediately sent to the `retryHandler`
 - eventually the first retried message reaches its `leaderDispatcher`
 - the `leaderDispatcher` sends off a special "chaser" message and releases its reference to the old broker
 - the `leaderDispatcher` updates its metadata, opens a connection to the new broker, and sends the retried message down the new path
