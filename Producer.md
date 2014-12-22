@@ -29,6 +29,20 @@ Maintaining the order of messages when a retry occurs is an additional challenge
 - the `leaderDispatcher` sees the retried chaser message (indicating that it has seen the last retried message)
 - the `leaderDispatcher` flushes the backlog of "new" messages to the new broker and resumes normal processing
 
+##### Multiple Retries
+
+There is an experimental pull request open to permit the producer to retry messages more than once while still preserving order: https://github.com/Shopify/sarama/pull/234. This change converts the 'retried' flag on each message into a proper counter, and rewrites the `leaderDispatcher` logic to handle multiple retries.
+
+When `n` retries are configured, each `leaderDispatcher` uses a set of `n` buffers for message backlogs that are being held to preserve order, as well as a set of `n` boolean flags to indicate which 'levels' currently have chaser messages in progress. For indexing simplicity, an `n+1`-length slice of structs is used; the flag at index 0 and the buffer at index `n` go unused. Each `leaderDispatcher` keeps one additional piece of state: the current high-watermark of retries in progress.
+
+In normal operation (no errors, no retries), the high-watermark is 0, all the flags are unset, and all the buffers are empty. When a message is received there are three possibilities:
+- the retry-count is equal to the high-watermark; the message is passed through normally
+- the retry-count is greater than the high-watermark; the message is passed through, but before this happens the high-watermark is updated, a chaser is sent and the chaser flag is set
+- the retry-count is less than the high-watermark; the message is saved in the appropriate buffer
+
+There is one additional case to consider: when a chaser message is received. If its retry-count is less than the high-watermark then it is discarded and the flag at that index is cleared. Otherwise its retry-count must be equal to the high-watermark. This causes the high-watermark to be decremented
+and any buffer at the new high-watermark to be flushed. This decrement+flush process is repeated until either a chaser flag is found (indicating the current high-watermark needs to be kept until its chaser is received) or the high-watermark hits 0, at which point normal operation resumes.
+
 ### Shutdown
 
 Cleanly shutting down/closing a concurrent application is always an "interesting" problem. With pipelines in go the situation is relatively straightforward except when you have multiple writers on a single channel, in which case you must reference-count them to ensure all writers are closed before the channel is.
