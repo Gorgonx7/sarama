@@ -40,8 +40,8 @@ In normal operation (no errors, no retries), the high-watermark is 0, all the fl
 - the retry-count is greater than the high-watermark; the message is passed through, but before this happens the high-watermark is updated, a chaser is sent and the chaser flag is set
 - the retry-count is less than the high-watermark; the message is saved in the appropriate buffer
 
-There is one additional case to consider: when a chaser message is received. If its retry-count is less than the high-watermark then it is discarded and the flag at that index is cleared. Otherwise its retry-count must be equal to the high-watermark. This causes the high-watermark to be decremented
-and any buffer at the new high-watermark to be flushed. This decrement+flush process is repeated until either a chaser flag is found (indicating the current high-watermark needs to be kept until its chaser is received) or the high-watermark hits 0, at which point normal operation resumes.
+There is one additional case to consider: when a chaser message is received. If its retry-count is less than the high-watermark then the flag at that index is cleared. Otherwise its retry-count must be equal to the high-watermark, which causes the high-watermark to be decremented
+and any buffer at the new high-watermark to be flushed. The decrement-and-flush process is repeated until either a chaser flag is found (indicating the current high-watermark needs to be kept until its chaser is received) or the high-watermark hits 0, at which point normal operation resumes.
 
 ### Shutdown
 
