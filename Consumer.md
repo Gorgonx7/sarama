@@ -10,7 +10,7 @@ The `Consumer` is a simple structure that does nothing but store state that has 
 
 ### PartitionConsumer
 
-`PartitionConsumer`s are spawned by a `Consumer` and are responsible for consuming from a single topic/partition. They store state specific to that partition, and manage one goroutine (`PartitionConsumer#dispatcher`).
+`PartitionConsumer`s are spawned by a `Consumer` and are responsible for consuming from a single topic/partition. They store state specific to that partition, and manage one goroutine (`dispatcher`).
 
 The dispatcher is only responsible for associating the `PartitionConsumer` with a broker, so it is idle in normal operation. It only activates when leadership changes in the cluster and the `PartitionConsumer` must change brokers.
 
