@@ -2,7 +2,7 @@ This page will serve to document the broader design of Sarama's consumer (aka co
 
 ### Overview
 
-There are three primary structs: `Consumer`, `PartitionConsumer`, and `consumerWorker`.
+There are three primary structs: `Consumer`, `PartitionConsumer`, and `brokerConsumer`.
 
 ### Consumer
 
@@ -14,6 +14,6 @@ The `Consumer` is a simple structure that does nothing but store state that has 
 
 The dispatcher is only responsible for associating the `PartitionConsumer` with a broker, so it is idle in normal operation. It only activates when leadership changes in the cluster and the `PartitionConsumer` must change brokers.
 
-### consumerWorker
+### brokerConsumer
 
-`consumerWorker`s work consuming from a single broker, and manage the set of `PartitionConsumers` that are currently led by their broker. They manage two goroutines: `doWork` which loops fetching from the broker, and `bridge` which serves to collect any new `PartitionConsumers` while `doWork` is blocked in network IO.
+`consumerWorker`s work consuming from a single broker, and manage the set of `PartitionConsumers` that are currently led by their broker. They manage two goroutines: `subscriptionConsumer` which loops fetching from the broker, and `subscriptionManager` which serves to collect any new `PartitionConsumers` while `subscriptionConsumer` is blocked in network IO.
