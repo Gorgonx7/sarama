@@ -38,7 +38,7 @@ func (a *App) Close() error {
 
 You can test it as follows:
 
-```
+``` go
 package main
 
 import (
