@@ -50,7 +50,7 @@ import (
 func TestApp(t *testing.T) {
 	mp := mocks.NewSyncProducer(t, nil)
 
-	mp.ExpectSendMessageAndFail(err)
+	mp.ExpectSendMessageAndSucceed()
 	mp.ExpectSendMessageAndFail(sarama.ErrOutOfBrokers)
 
 	a := NewApp(mp)
