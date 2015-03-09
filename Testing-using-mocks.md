@@ -1,6 +1,6 @@
 Testing is possible using dependency injection. Sarama ships with mock types in the `mocks` subpackage. Those mock types can be used instead of the real sarama types for testing purposes.
 
-### Testing a producer example
+### Example: application using the sync producer
 
 Given the following application:
 
