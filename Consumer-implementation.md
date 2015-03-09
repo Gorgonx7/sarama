@@ -1,4 +1,4 @@
-This page will serve to document the broader design of Sarama's consumer (aka consumer-ng or multiconsumer) which hasn't yet landed in master yet (see [PR #222](https://github.com/Shopify/sarama/pull/222)).
+This page will serve to document the broader design of Sarama's consumer
 
 ### Overview
 
