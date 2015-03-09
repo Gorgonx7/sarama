@@ -12,9 +12,11 @@ The producer is effectively based on the [pipeline concurrency pattern](http://b
 
 ### Retrying
 
-When the `flusher` cannot deliver a message due to a cluster leadership change, that message is automatically retried at most once. A flag is set on each message indicating that it is being retried, and the messages are then sent to the `retryHandler` (an additional singleton goroutine) which puts them back onto the normal input channel.
+When the `flusher` cannot deliver a message due to a cluster leadership change, that message is retried.  A flag is set on each message indicating that it is being retried, and the messages are then sent to the `retryHandler` (an additional singleton goroutine) which puts them back onto the normal input channel.
 
 As this introduces a loop in our pipeline, we must be careful to avoid the obvious deadlock case. To this end, the `retryHandler` goroutine is *always* available to read messages.
+
+The number of retry attempts is configurable as `config.Producer.Retry.Max`. After every retry attempt, the producer will sleep `config.Producer.Retry.Backoff` before trying again.
 
 ##### Maintaining Order
 
@@ -28,10 +30,6 @@ Maintaining the order of messages when a retry occurs is an additional challenge
 - the `flusher` sees the chaser message; it clears the flag it originally sent, and "retries" the chaser message
 - the `leaderDispatcher` sees the retried chaser message (indicating that it has seen the last retried message)
 - the `leaderDispatcher` flushes the backlog of "new" messages to the new broker and resumes normal processing
-
-##### Multiple Retries
-
-There is an experimental pull request open to permit the producer to retry messages more than once while still preserving order: https://github.com/Shopify/sarama/pull/234. This change converts the 'retried' flag on each message into a proper counter, and rewrites the `leaderDispatcher` logic to handle multiple retries.
 
 When `n` retries are configured, each `leaderDispatcher` uses a set of `n` buffers for message backlogs that are being held to preserve order, as well as a set of `n` boolean flags to indicate which 'levels' currently have chaser messages in progress. For indexing simplicity, an `n+1`-length slice of structs is used; the flag at index 0 and the buffer at index `n` go unused. Each `leaderDispatcher` keeps one additional piece of state: the current high-watermark of retries in progress.
 
