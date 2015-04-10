@@ -3,3 +3,4 @@ The following ideas cannot be implemented in v1, because it would break backward
 - `Client.Replicas` should return `[]*Broker`. Is safe now we have lazy connections. Or is it enough to just add `Client.Broker(int32) *Broker`?
 - Remove `Encoder` interface. It complicates things, and we cannot "stream" the content anyway because we need to send a CRC32 to the broker first. This means we have to buffer the value on memory anyway.
 - Move Request/Response objects to `protocol` subpackage, and export Encode and Decode methods.
+- `ConsumerMetadataResponse` should just have a `*Broker` as a field, it lines up exactly with `MetadataResponse` and correctly encapsulates the id/host/port tuple. This is actually important since there is no public setter for `ID` on the broker right now (nor should there be), so external code can't actually correctly construct the returned broker object.
