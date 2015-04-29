@@ -18,5 +18,6 @@ Sarama uses a number of goroutines internally, so when golang dumps a stack trac
 #### Consumer
 
 - `[chan receive]: github.com/Shopify/sarama.(*partitionConsumer).dispatcher` is a consumer goroutine (one per partition being consumed) which handles associating partitions with their brokers and is usually quiet
+- `[chan receive]: github.com/Shopify/sarama.(*partitionConsumer).responseFeeder` is a consumer goroutine (one per partition being consumed) which handles feeding messages to the user
 - `[select]: github.com/Shopify/sarama.(*brokerConsumer).subscriptionManager` is a consumer goroutine (one per broker) which manages subscriptions for consuming from individual partitions and is usually quiet
 -  `[chan receive]: github.com/Shopify/sarama.(*brokerConsumer).subscriptionConsumer` is a consumer goroutine (one per broker) which actually sends fetch requests and handles the responses
