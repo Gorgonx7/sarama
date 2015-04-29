@@ -10,10 +10,14 @@ The `Consumer` is a simple structure that does nothing but store state that has 
 
 ### PartitionConsumer
 
-`PartitionConsumer`s are spawned by a `Consumer` and are responsible for consuming from a single topic/partition. They store state specific to that partition, and manage one goroutine (`dispatcher`).
+`PartitionConsumer`s are spawned by a `Consumer` and are responsible for consuming from a single topic/partition. They store state specific to that partition, and manage two goroutines (`dispatcher` and `responseFeeder`).
 
-The dispatcher is only responsible for associating the `PartitionConsumer` with a broker, so it is idle in normal operation. It only activates when leadership changes in the cluster and the `PartitionConsumer` must change brokers.
+The `dispatcher` is only responsible for associating the `PartitionConsumer` with a broker, so it is idle in normal operation. It only activates when leadership changes in the cluster and the `PartitionConsumer` must change brokers.
+
+The `responseFeeder` is responsible for taking `FetchResponse`s returned from the broker and feeding the messages out to the user.
 
 ### brokerConsumer
 
-`consumerWorker`s work consuming from a single broker, and manage the set of `PartitionConsumers` that are currently led by their broker. They manage two goroutines: `subscriptionConsumer` which loops fetching from the broker, and `subscriptionManager` which serves to collect any new `PartitionConsumers` while `subscriptionConsumer` is blocked in network IO.
+`brokerConsumers`s work consuming from a single broker, and manage the set of `PartitionConsumers` that are currently led by that broker.
+
+They manage two goroutines: `subscriptionConsumer` which loops fetching from the broker, and `subscriptionManager` which serves to collect any new `PartitionConsumers` while `subscriptionConsumer` is blocked in network IO.
