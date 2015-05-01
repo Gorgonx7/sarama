@@ -5,3 +5,4 @@ The following ideas cannot be implemented in v1, because it would break backward
 - Move Request/Response objects to `protocol` subpackage, and export Encode and Decode methods. Maybe also move producer, consumer, clients to their own (sub)packages so that e.g. a producer binary doesn't have to pull in all the consumer code.
 - `ConsumerMetadataResponse` has some deprecated fields (replaced by a single `*Broker`) which can be removed.
 - Make backoff values `[]time.Duration` so that exponential and other backoff patterns can be easily specified using e.g. https://godoc.org/github.com/eapache/go-resiliency/retrier#ConstantBackoff and friends
+- The `kafka-console-partitionConsumer` tool can be removed, it is superseded by `kafka-console-consumer`.
