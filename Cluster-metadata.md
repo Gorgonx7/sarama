@@ -24,8 +24,9 @@ The current implementation is ugly and not optimal, but works reasonably well in
 - We keep 3 sets of brokers: the `brokers` map, `seedBrokers`, and `deadSeeds`.
 - The logic is hard to understand.
 
-### Potential improvements
+## Potential improvements
 
 - Only use the `brokers` map to store brokers that have an ID. Only use the list of seed brokers in `NewClient` to initialize the `brokers` map, throw them away afterwards.
 - Contact brokers that are already connected before connecting to brokers that are not used, to minimize connections.
-- Contact brokers that haven't processed a request recently before contacting brokers that just handled one, to better load balance requests over the active brokers.
+- Contact brokers that haven't processed a request recently before contacting brokers that just handled one, to better load balance requests over the active brokers. Alternatively, pick a random (connected) broker.
+- Right now, every operations that triggers stale metadata will request a refresh. This means that when a broker goes down, we potentially have many goroutines asking for new metadata. The Kafka protocol allows us to batch these requests into one.
