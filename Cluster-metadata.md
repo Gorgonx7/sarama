@@ -20,7 +20,7 @@ The current implementation is ugly and not optimal, but works reasonably well in
 
 ### Problems with this implementation
 
-- The meaning of a retry is unclear. Sometimes it means "try all brokers", but sometimes we go through a retry after talking to only broker.
+- The meaning of a retry is unclear. Sometimes it means "try all brokers", but sometimes we go through a retry after talking to only a single broker.
 - We keep 3 sets of brokers: the `brokers` map, `seedBrokers`, and `deadSeeds`.
 - The logic is hard to understand.
 
