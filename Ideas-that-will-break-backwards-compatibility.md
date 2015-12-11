@@ -7,4 +7,4 @@ The following ideas cannot be implemented in v1, because they would break backwa
 - Make backoff values `[]time.Duration` so that exponential and other backoff patterns can be easily specified using e.g. https://godoc.org/github.com/eapache/go-resiliency/retrier#ConstantBackoff and friends
 - Use logrus for structured logging?
 - The `kafka-console-partitionconsumer` tool can be removed, it is superseded by `kafka-console-consumer`.
-- Go lint wants `Id` to be `ID` everywhere, e.g. `GroupId` should be `GroupID` in several protocol fields
+- Go lint wants `Id` to be `ID` everywhere, e.g. `GroupId` should be `GroupID` in several protocol fields.
