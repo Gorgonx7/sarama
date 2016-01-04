@@ -8,4 +8,4 @@ The following ideas cannot be implemented in v1, because they would break backwa
 - Use logrus for structured logging?
 - The `kafka-console-partitionconsumer` tool can be removed, it is superseded by `kafka-console-consumer`.
 - Go lint wants `Id` to be `ID` everywhere, e.g. `GroupId` should be `GroupID` in several protocol fields.
-- Make the `Broker` a mockable interface? Or just make the mock broker code public? See e.g. #570 for some discussion.
+- Make the `Broker` a mockable interface? Or just make the mock broker code public? See e.g. https://github.com/Shopify/sarama/pull/570 for some discussion.
