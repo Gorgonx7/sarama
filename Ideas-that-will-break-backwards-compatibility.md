@@ -9,3 +9,4 @@ The following ideas cannot be implemented in v1, because they would break backwa
 - The `kafka-console-partitionconsumer` tool can be removed, it is superseded by `kafka-console-consumer`.
 - Go lint wants `Id` to be `ID` everywhere, e.g. `GroupId` should be `GroupID` in several protocol fields.
 - Make the `Broker` a mockable interface? Or just make the mock broker code public? See e.g. https://github.com/Shopify/sarama/pull/570 for some discussion. Move the now-public mocks to their own package and settle https://github.com/Shopify/sarama/issues/497 once and for all.
+- Add log levels to the logger interface
