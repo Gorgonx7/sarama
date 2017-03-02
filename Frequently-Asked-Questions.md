@@ -24,7 +24,7 @@ Yes. Like Kafka, Sarama guarantees message order consistency only within a given
 
 #### Does Sarama's producer guarantee that successful messages are contiguous?
 
-No. If five messages (1,2,3,4,5) are fed to the producer in sequence, it is possible (though rare) that the Kafka cluster will end up with messages 1, 2, 4, and 5 in order, but not message 3. In this case you will receive an error on the `Errors()` channel.
+No. If five messages (1,2,3,4,5) are fed to the producer in sequence, it is possible (though rare) that the Kafka cluster will end up with messages 1, 2, 4, and 5 in order, but not message 3. In this case you will receive an error for message 3 on the `Errors()` channel.
 
 #### Is it safe to send messages to the synchronous producer concurrently from multiple goroutines?
 
