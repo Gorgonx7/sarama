@@ -12,6 +12,12 @@ Consumer-groups are complicated, so this logic lives in a separate (unaffiliated
 
 For issues with these libraries, please file a ticket in their respective repositories, not with Sarama.
 
+#### Why am I getting a `nil` message from the Sarama consumer?
+
+Sarama will never put a `nil` message on the channel. If you are getting `nil`s then the channel has been closed (a receive from a closed channel returns the zero value for that type, which is `nil` for pointers).
+
+The channel will normally be closed only when the PartitionConsumer has been shut down, either by calling `Close` or `AsyncClose` on it. However, the PartitionConsumer may sometimes shut itself down when it encounters an unrecoverable error; in this case you will get an appropriate error on the `Errors` channel, and it will also log a message to `sarama.Logger` that looks something like: `consumer/TOPIC/PARTITION shutting down because REASON`.
+
 ## Producing
 
 #### How fast is Sarama's producer?
