@@ -4,6 +4,12 @@
 
 Yes. At the time of writing (March, 2017) Shopify uses Sarama heavily. I understand that there are other major companies using it in production too. If you work for such a company and file a ticket to let me know, I'll list it here.
 
+#### How do I fetch an offset for a specific timestamp?
+
+Use `Client.GetOffset()`.
+
+Starting in Sarama v1.11.0, this method will automatically use Kafka's new precise timestamp lookup if your Kafka version (as provided by `Config.Version`) is at least 0.10.1. Otherwise, the method will fall back to the old API which returns only a *very* approximate value.
+
 ## Consuming
 
 #### How can I use Sarama to join a consumer group?
