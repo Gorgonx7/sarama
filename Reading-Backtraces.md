@@ -8,11 +8,10 @@ Sarama uses a number of goroutines internally, so when golang dumps a stack trac
 
 #### Producer
 
-- `[chan receive]: github.com/Shopify/sarama.(*asyncProducer).topicDispatcher` is the producer's main goroutine waiting for the next message from the user
-- `[chan receive]: github.com/Shopify/sarama.(*asyncProducer).partitionDispatcher` is a producer goroutine (one per topic being produced to) for partitioning messages
-- `[chan receive]: github.com/Shopify/sarama.(*asyncProducer).leaderDispatcher` is a producer goroutine (one per partition) for associating messages with the correct broker
-- `[select]: github.com/Shopify/sarama.(*asyncProducer).messageAggregator` is a producer goroutine (one per broker) for collecting messages and constructing produce requests
-- `[chan receive]: github.com/Shopify/sarama.(*asyncProducer).flusher` is a producer goroutine (one per broker) for actually sending produce requests to the broker
+- `[chan receive]: github.com/Shopify/sarama.(*asyncProducer).dispatcher` is the producer's main goroutine waiting for the next message from the user
+- `[chan receive]: github.com/Shopify/sarama.(*topicProducer).dispatch` is a producer goroutine (one per topic being produced to) for partitioning messages
+- `[chan receive]: github.com/Shopify/sarama.(*partitionProducer).dispatch` is a producer goroutine (one per partition) for associating messages with the correct broker
+- `[select]: github.com/Shopify/sarama.(*brokerProducer).run` is a producer goroutine (one per broker) for collecting messages and constructing/sending produce requests
 - `[chan receive]: github.com/Shopify/sarama.(*asyncProducer).retryHandler` is a single producer goroutine which only wakes up to handle message retries
 
 #### Consumer
