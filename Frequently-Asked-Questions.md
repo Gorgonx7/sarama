@@ -24,6 +24,12 @@ Sarama will never put a `nil` message on the channel. If you are getting `nil`s 
 
 The channel will normally be closed only when the PartitionConsumer has been shut down, either by calling `Close` or `AsyncClose` on it. However, the PartitionConsumer may sometimes shut itself down when it encounters an unrecoverable error; in this case you will get an appropriate error on the `Errors` channel, and it will also log a message to `sarama.Logger` that looks something like: `consumer/TOPIC/PARTITION shutting down because REASON`.
 
+#### How do I consume until the end of a partition?
+
+You don't. Kafka doesn't have the concept of a topic or partition "ending"; it was designed for systems where new messages are constantly arriving and so the question is meaningless. There are, however, a few ways to approximate this, both with some obvious drawbacks:
+- Wait for the configured `Consumer.MaxWaitTime` time to pass, and if no messages have arrived within that time then assume you're done.
+- Use `Client.GetOffset` to get the last offset when you start, and consume up until that offset is reached. 
+
 ## Producing
 
 #### How fast is Sarama's producer?
