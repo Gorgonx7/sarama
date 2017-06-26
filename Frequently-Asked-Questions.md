@@ -6,6 +6,7 @@ Yes. At the time of writing (June, 2017) the following companies have confirmed 
 - [Shopify](https://www.shopify.com/)
 - [Heroku](https://www.heroku.com/)
 - [VividCortex](https://www.vividcortex.com/)
+- [Atomx](https://www.atomx.com/)
 
 I understand that there are other major companies using it in production too. If you work for such a company and file a ticket to let me know, I'll list it here.
 
