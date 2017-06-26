@@ -3,7 +3,7 @@
 #### Is Sarama used in production anywhere?
 
 Yes. At the time of writing (June, 2017) the following companies have confirmed they are using Sarama:
-- [Shopify](https://www.shopify.ca/)
+- [Shopify](https://www.shopify.com/)
 - [Heroku](https://www.heroku.com/)
 - [VividCortex](https://www.vividcortex.com/)
 
