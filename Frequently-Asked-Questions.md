@@ -2,7 +2,12 @@
 
 #### Is Sarama used in production anywhere?
 
-Yes. At the time of writing (March, 2017) Shopify uses Sarama heavily. I understand that there are other major companies using it in production too. If you work for such a company and file a ticket to let me know, I'll list it here.
+Yes. At the time of writing (June, 2017) the following companies have confirmed they are using Sarama:
+- [Shopify](https://www.shopify.ca/)
+- [Heroku](https://www.heroku.com/)
+- [VividCortex](https://www.vividcortex.com/)
+
+I understand that there are other major companies using it in production too. If you work for such a company and file a ticket to let me know, I'll list it here.
 
 #### How do I fetch an offset for a specific timestamp?
 
