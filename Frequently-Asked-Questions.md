@@ -14,7 +14,7 @@ Starting in Sarama v1.11.0, this method will automatically use Kafka's new preci
 
 ## Consuming
 
-#### How can I use Sarama to join a consumer group?
+#### How can I use Sarama to monitor or join a consumer group?
 
 Consumer-groups are complicated, so this logic lives in a separate (unaffiliated) project which builds on top of Sarama. For Kafka-based tracking (Kafka 0.9 and later), use https://github.com/bsm/sarama-cluster. For Zookeeper-based tracking (Kafka 0.8.2 and earlier), use https://github.com/wvanbergen/kafka.
 
