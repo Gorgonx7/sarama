@@ -12,6 +12,10 @@ Use `Client.GetOffset()`.
 
 Starting in Sarama v1.11.0, this method will automatically use Kafka's new precise timestamp lookup if your Kafka version (as provided by `Config.Version`) is at least 0.10.1. Otherwise, the method will fall back to the old API which returns only a *very* approximate value.
 
+#### Does Sarama support [Kafka Streams](https://kafka.apache.org/documentation/streams/)?
+
+No. Kafka Streams is a separate library for stream processing backed by Kafka. It is not a feature of Kafka proper and not something that Sarama intends to support. If somebody wanted to implement streams on top of Sarama, it should live in a separate package.
+
 ## Consuming
 
 #### How can I use Sarama to monitor or join a consumer group?
