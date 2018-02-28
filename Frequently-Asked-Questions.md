@@ -40,6 +40,18 @@ You don't. Kafka doesn't have the concept of a topic or partition "ending"; it w
 - Wait for the configured `Consumer.MaxWaitTime` time to pass, and if no messages have arrived within that time then assume you're done.
 - Use `Client.GetOffset` to get the last offset when you start, and consume up until that offset is reached. 
 
+#### Why is the consumer leaking memory and/or goroutines?
+
+It's not. First, Go uses a garbage-collector, so most memory will be automatically reclaimed unless there's a reference to it hanging around somewhere by accident. Second, the structure of the consumer is remarkably simple and there's basically nowhere for an incorrect reference to sneak in.
+
+Common explanations for what looks like a leak in the consumer but isn't:
+- Go's garbage collector returns memory to the Operating System very rarely, preferring to reuse it internally first. This means that external memory measurements may not go down immediately even when the memory is no longer used.
+- If you have a lot of memory to spare, Go will use it aggressively for performance. Just because your program is currently using many GiB of memory, doesn't mean it won't run just fine on a more constrained system.
+- The consumer does use a *lot* of goroutines, but not an unbounded number. Expect a goroutine for every partition you are consuming plus a few on top; this can be thousands for a process consuming many topics each with many partitions.
+- The leak is in your code instead: if you have code that permanently stores a reference to the `ConsumerMessage`s coming out of the consumer, that memory will effectively leak and the profiler will point to the location in Sarama where it was allocated.
+
+If you're going to file a ticket claiming there's a leak in the consumer, please provide a detailed profile and analysis of exactly where/how the leak is occurring.
+
 ## Producing
 
 #### How fast is Sarama's producer?
