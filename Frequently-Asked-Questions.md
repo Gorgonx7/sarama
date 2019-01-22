@@ -24,9 +24,7 @@ SSL *is* supported. There are a couple of potential causes for SSL connection pr
 
 #### How can I use Sarama to monitor or join a consumer group?
 
-Consumer-groups are complicated, so this logic lives in a separate (unaffiliated) project which builds on top of Sarama. For Kafka-based tracking (Kafka 0.9 and later), use https://github.com/bsm/sarama-cluster. For Zookeeper-based tracking (Kafka 0.8.2 and earlier), use https://github.com/wvanbergen/kafka.
-
-For issues with these libraries, please file a ticket in their respective repositories, not with Sarama.
+Yes, sarama supports consumer groups as of v1.19.0.
 
 #### Why am I getting a `nil` message from the Sarama consumer?
 
