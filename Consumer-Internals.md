@@ -1,4 +1,4 @@
-This page serves to document the broader design of Sarama's consumer.
+This page serves to document the broader design of the internals of Sarama's consumer.
 
 ### Overview
 
