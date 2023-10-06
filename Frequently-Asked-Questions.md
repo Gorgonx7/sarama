@@ -18,7 +18,7 @@ No. Kafka Streams is a separate library for stream processing backed by Kafka. I
 
 #### Why can't Sarama connect to my Kafka cluster using SSL?
 
-SSL *is* supported. There are a couple of potential causes for SSL connection problems, but if everything else is working (you can connect on the non-SSL port, and other SSL clients can establish a connection) then chances are you have a cipher problem. When creating the keystore on the server, you need to pass the `-keyalg RSA` argument or else the Kafka broker will operate using an extremely limited set of ciphers, none of which are supported by Golang. See [#643](https://github.com/Shopify/sarama/issues/643) for more details.
+SSL *is* supported. There are a couple of potential causes for SSL connection problems, but if everything else is working (you can connect on the non-SSL port, and other SSL clients can establish a connection) then chances are you have a cipher problem. When creating the keystore on the server, you need to pass the `-keyalg RSA` argument or else the Kafka broker will operate using an extremely limited set of ciphers, none of which are supported by Golang. See [#643](https://github.com/IBM/sarama/issues/643) for more details.
 
 ## Consuming
 

@@ -8,7 +8,7 @@ The following ideas cannot be implemented in v1, because they would break backwa
 - Use logrus for structured logging? Add log levels to the logger interface?
 - The `kafka-console-partitionconsumer` tool can be removed, it is superseded by `kafka-console-consumer`.
 - Go lint wants `Id` to be `ID` everywhere, e.g. `GroupId` should be `GroupID` in several protocol fields.
-- Make the `Broker` a mockable interface? Or just make the mock broker code public? See e.g. https://github.com/Shopify/sarama/pull/570 for some discussion. Move the now-public mocks to their own package and settle https://github.com/Shopify/sarama/issues/497 once and for all.
-- Fix the default signedness of the hash partitioner (https://github.com/Shopify/sarama/issues/1090).
-- More hash-partitioner stuff: https://github.com/Shopify/sarama/pull/1118#issuecomment-397661619
+- Make the `Broker` a mockable interface? Or just make the mock broker code public? See e.g. https://github.com/IBM/sarama/pull/570 for some discussion. Move the now-public mocks to their own package and settle https://github.com/IBM/sarama/issues/497 once and for all.
+- Fix the default signedness of the hash partitioner (https://github.com/IBM/sarama/issues/1090).
+- More hash-partitioner stuff: https://github.com/IBM/sarama/pull/1118#issuecomment-397661619
 - Use a new/extendable metrics library for broker/consumer/producer metrics from sarama
