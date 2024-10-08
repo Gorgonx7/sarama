@@ -2,6 +2,9 @@ package sarama
 
 import (
 	"errors"
+	"fmt"
+	"runtime"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -78,7 +81,12 @@ func initPartitionOffsetManager(t *testing.T, om OffsetManager,
 
 func TestNewOffsetManager(t *testing.T) {
 	seedBroker := NewMockBroker(t, 1)
-	seedBroker.Returns(new(MetadataResponse))
+	metadataResponse := new(MetadataResponse)
+	metadataResponse.AddBroker(seedBroker.Addr(), seedBroker.BrokerID())
+	seedBroker.Returns(metadataResponse)
+	findCoordResponse := new(FindCoordinatorResponse)
+	findCoordResponse.Coordinator = &Broker{id: seedBroker.brokerID, addr: seedBroker.Addr()}
+	seedBroker.Returns(findCoordResponse)
 	defer seedBroker.Close()
 
 	testClient, err := NewClient([]string{seedBroker.Addr()}, NewTestConfig())
@@ -96,6 +104,105 @@ func TestNewOffsetManager(t *testing.T) {
 	_, err = NewOffsetManagerFromClient("group", testClient)
 	if !errors.Is(err, ErrClosedClient) {
 		t.Errorf("Error expected for closed client; actual value: %v", err)
+	}
+}
+
+// Test that the correct sequence of offset commit messages is sent to a broker when
+// multiple goroutines for a group are committing offsets at the same time
+func TestOffsetManagerCommitSequence(t *testing.T) {
+	lastOffset := map[int32]int64{}
+	var outOfOrder atomic.Pointer[string]
+	seedBroker := NewMockBroker(t, 1)
+	defer seedBroker.Close()
+	seedBroker.SetHandlerFuncByMap(map[string]requestHandlerFunc{
+		"MetadataRequest": func(req *request) encoderWithHeader {
+			resp := new(MetadataResponse)
+			resp.AddBroker(seedBroker.Addr(), seedBroker.BrokerID())
+			return resp
+		},
+		"FindCoordinatorRequest": func(req *request) encoderWithHeader {
+			resp := new(FindCoordinatorResponse)
+			resp.Coordinator = &Broker{id: seedBroker.brokerID, addr: seedBroker.Addr()}
+			return resp
+		},
+		"OffsetFetchRequest": func(r *request) encoderWithHeader {
+			req := r.body.(*OffsetFetchRequest)
+			resp := new(OffsetFetchResponse)
+			resp.Blocks = map[string]map[int32]*OffsetFetchResponseBlock{}
+			for topic, partitions := range req.partitions {
+				for _, partition := range partitions {
+					if _, ok := resp.Blocks[topic]; !ok {
+						resp.Blocks[topic] = map[int32]*OffsetFetchResponseBlock{}
+					}
+					resp.Blocks[topic][partition] = &OffsetFetchResponseBlock{
+						Offset: 0,
+						Err:    ErrNoError,
+					}
+				}
+			}
+			return resp
+		},
+		"OffsetCommitRequest": func(r *request) encoderWithHeader {
+			req := r.body.(*OffsetCommitRequest)
+			if outOfOrder.Load() == nil {
+				for partition, offset := range req.blocks["topic"] {
+					last := lastOffset[partition]
+					if last > offset.offset {
+						msg := fmt.Sprintf("out of order commit to partition %d, current committed offset: %d, offset in request: %d",
+							partition, last, offset.offset)
+						outOfOrder.Store(&msg)
+					}
+					lastOffset[partition] = offset.offset
+				}
+			}
+
+			// Potentially yield, to try and avoid each Go routine running sequentially to completion
+			runtime.Gosched()
+
+			resp := new(OffsetCommitResponse)
+			resp.Errors = map[string]map[int32]KError{}
+			resp.Errors["topic"] = map[int32]KError{}
+			for partition := range req.blocks["topic"] {
+				resp.Errors["topic"][partition] = ErrNoError
+			}
+			return resp
+		},
+	})
+	testClient, err := NewClient([]string{seedBroker.Addr()}, NewTestConfig())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer safeClose(t, testClient)
+	om, err := NewOffsetManagerFromClient("group", testClient)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer safeClose(t, om)
+
+	const numPartitions = 10
+	const commitsPerPartition = 1000
+
+	var wg sync.WaitGroup
+	for p := 0; p < numPartitions; p++ {
+		pom, err := om.ManagePartition("topic", int32(p))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		wg.Add(1)
+		go func() {
+			for c := 0; c < commitsPerPartition; c++ {
+				pom.MarkOffset(int64(c+1), "")
+				om.Commit()
+			}
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
+	errMsg := outOfOrder.Load()
+	if errMsg != nil {
+		t.Error(*errMsg)
 	}
 }
 
@@ -569,4 +676,64 @@ func TestAbortPartitionOffsetManager(t *testing.T) {
 	safeClose(t, pom)
 	safeClose(t, om)
 	safeClose(t, testClient)
+}
+
+// Validate that the constructRequest() method correctly maps Sarama's default for
+// Config.Consumer.Offsets.Retention to the equivalent Kafka value.
+func TestConstructRequestRetentionTime(t *testing.T) {
+	expectedRetention := func(version KafkaVersion, retention time.Duration) int64 {
+		switch {
+		case version.IsAtLeast(V2_1_0_0):
+			// version >= 2.1.0: Client specified retention time isn't supported in the
+			// offset commit request anymore, thus the retention time field set in the
+			// OffsetCommitRequest struct should be 0.
+			return 0
+		case version.IsAtLeast(V0_9_0_0):
+			// 0.9.0 <= version < 2.1.0: Retention time *is* supported in the offset commit
+			// request. Sarama's default retention times (0) must be mapped to the Kafka
+			// default (-1). Non-zero Sarama times are converted from time.Duration to
+			// an int64 millisecond value.
+			if retention > 0 {
+				return int64(retention / time.Millisecond)
+			} else {
+				return -1
+			}
+		default:
+			// version < 0.9.0: Client specified retention time is not supported in the offset
+			// commit request, thus the retention time field set in the OffsetCommitRequest
+			// struct should be 0.
+			return 0
+		}
+	}
+
+	for _, version := range SupportedVersions {
+		for _, retention := range []time.Duration{0, time.Millisecond} {
+			name := fmt.Sprintf("version %s retention: %s", version, retention)
+			t.Run(name, func(t *testing.T) {
+				// Perform necessary setup for calling the constructRequest() method. This
+				// test-case only cares about the code path that sets the retention time
+				// field in the returned request struct.
+				conf := NewTestConfig()
+				conf.Version = version
+				conf.Consumer.Offsets.Retention = retention
+				om := &offsetManager{
+					conf: conf,
+					poms: map[string]map[int32]*partitionOffsetManager{
+						"topic": {
+							0: {
+								dirty: true,
+							},
+						},
+					},
+				}
+
+				req := om.constructRequest()
+
+				expectedRetention := expectedRetention(version, retention)
+				if req.RetentionTime != expectedRetention {
+					t.Errorf("expected retention time %d, got: %d", expectedRetention, req.RetentionTime)
+				}
+			})
+		}
+	}
 }

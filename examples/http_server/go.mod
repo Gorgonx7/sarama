@@ -1,4 +1,4 @@
-module github.com/IBM/sarama/examples/consumer
+module github.com/IBM/sarama/examples/http_server
 
 go 1.20
 
